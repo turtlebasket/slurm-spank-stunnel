@@ -1,1 +1,0 @@
-/n/sw/fasrcsw/apps/Core/libtool/2.4.6-fasrc01/share/aclocal/lt~obsolete.m4
