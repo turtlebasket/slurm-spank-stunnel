@@ -1,51 +1,49 @@
-Summary: Slurm spank plugin for arbitrary port forwarding support
-Name: spunnel
-Version: 15.08.4
+Summary: Slurm SPANK plugin for SSH tunneling and port forwarding support
+Name: slurm-spank-spunnel
+Version: 0.2
 Release: 1 
 License: GPL
 Group: System Environment/Base
 Source0: %{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 
-#BuildRequires: slurm-devel
-#Requires: slurm
+BuildRequires: slurm-devel
+Requires: slurm
 
 %description
-SLURM spank plugin that supports port forwarding between submit and execution
+Slurm SPANK plugin that allows SSH port forwarding between submit and execution
 hosts
-
-%{!?_slurm_libdir: %global _slurm_libdir %{_libdir}/slurm}
-%define _libdir %{_slurm_libdir}
 
 %prep
 %setup -q
 
 %build
-%configure
-make
+%{__cc} -shared -fPIC -o spunnel.so slurm-spank-spunnel.c
 
 %install
 rm -rf $RPM_BUILD_ROOT
-make install DESTDIR=$RPM_BUILD_ROOT
-rm  -f $RPM_BUILD_ROOT/%{_libdir}/libspunnel.a
-rm  -f $RPM_BUILD_ROOT/%{_libdir}/libspunnel.la
-
+mkdir -p $RPM_BUILD_ROOT
+mkdir -p $RPM_BUILD_ROOT%{_libdir}
+mkdir -p $RPM_BUILD_ROOT%{_libdir}/slurm
+mkdir -p $RPM_BUILD_ROOT%{_libexecdir}
+mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}
+mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/slurm
+mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/slurm/plugstack.conf.d
+install -m 755 slurm-spank-spunnel $RPM_BUILD_ROOT%{_libexecdir}
+install -m 755 spunnel.so $RPM_BUILD_ROOT%{_libdir}/slurm
+install -m 644 plugstack.conf $RPM_BUILD_ROOT%{_sysconfdir}/slurm/plugstack.conf.d/spunnel.conf.example
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
-%{_libdir}/libspunnel.so
-%{_libdir}/libspunnel.so.0
-%{_libdir}/libspunnel.so.0.0.7
-%{_datadir}/doc/spunnel/AUTHORS
-%{_datadir}/doc/spunnel/COPYING
-%{_datadir}/doc/spunnel/README.md
-%{_datadir}/doc/spunnel/plugstack.conf.example
-
+%{_libexecdir}/slurm-spank-spunnel
+%{_libdir}/slurm/spunnel.so
+%config %{_sysconfdir}/slurm/plugstack.conf.d/spunnel.conf.example
 
 %changelog
+* Fri Aug 11 2017 Kilian Cavalotti <kilian@stanford.edu>
+- Cleanup and simplify build procedure (don't use autotools)
 * Mon Nov 17 2014 Aaron Kitzmiller <aaron_kitzmiller@harvard.edu>
 - Initial rpmbuild
-- 
