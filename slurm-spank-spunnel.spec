@@ -29,7 +29,6 @@ mkdir -p $RPM_BUILD_ROOT%{_libexecdir}
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/slurm
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/slurm/plugstack.conf.d
-install -m 755 slurm-spank-spunnel $RPM_BUILD_ROOT%{_libexecdir}
 install -m 755 spunnel.so $RPM_BUILD_ROOT%{_libdir}/slurm
 install -m 644 plugstack.conf $RPM_BUILD_ROOT%{_sysconfdir}/slurm/plugstack.conf.d/spunnel.conf.example
 
@@ -38,7 +37,6 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
-%{_libexecdir}/slurm-spank-spunnel
 %{_libdir}/slurm/spunnel.so
 %config %{_sysconfdir}/slurm/plugstack.conf.d/spunnel.conf.example
 
