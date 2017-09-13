@@ -1,29 +1,33 @@
 # slurm-spank-stunnel
 
-Slurm SPANK plugin to ease the creation of SSH tunnels and enable port
-forwarding to jobs.
+`slurm-spank-stunnel` is a [Slurm](http://www.schemd.com/slurm)
+[SPANK](https://slurm.schedmd.com/spank.html) plugin that facilitates the
+creation of SSH tunnels between submission hosts and compute nodes.
 
 ## Description
 
-The idea is to allow users to setup port forwarding during an interactive Slurm
-session.  This will be beneficial for IPython notebooks, but you can use it for
-anything that requires an SSH tunnel.  The command form is:
+The goal of `slurm-spank-tunnel` is to allow users to setup port forwarding
+during an interactive Slurm session.  This will be beneficial for IPython
+notebooks, for instance, but it could be of use for anything that requires an
+SSH tunnel.
+
+
+The general command looks like:
 
 ```
-$ srun [options] --tunnel=<submit host port>:<exec host port>[,<submit host port>:<exec host port>]
+$ srun [options] --tunnel=<submit_host_port>:<compute_node_port>[,<submit_host_port>:<compute_node_port>]
 ```
 
-So, if you need to run, say, an IPython notebook and a Django development
-server in the same session, but 8000 and 8888 are occupied on the login node,
-you'd start a session like this:
+So for instance, if you want to run an IPython notebook and a Django development
+server in the same session, you could start a session like this:
 
 ```
-$ srun --pty --mem 4000 -p interact --tunnel 8001:8000,8889:8888 bash
+$ srun --pty --mem 4000 -p dev --tunnel 8001:8000,8889:8888 bash
 ```
+This will foward:
+*  port 8001 on the submisison host to port 8000 on the compute node
+*  port 8889 on the submisison host to port 8888 on the compute node
 
-A given user can only do one of these per login host at a time: if you already
-have a tunnel setup on `login01`, you can't login to `login01` a second time
-and do a new forwarding session.
 
 ## Implementation details
 
