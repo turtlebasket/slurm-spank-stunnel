@@ -1,4 +1,4 @@
-# slurm-spank-spunnel
+# slurm-spank-stunnel
 
 Slurm SPANK plugin to ease the creation of SSH tunnels and enable port
 forwarding to jobs.

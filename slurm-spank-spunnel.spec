@@ -1,5 +1,5 @@
 Summary: Slurm SPANK plugin for SSH tunneling and port forwarding support
-Name: slurm-spank-spunnel
+Name: slurm-spank-stunnel
 Version: 0.2.1
 Release: 1 
 License: GPL
@@ -18,7 +18,7 @@ hosts
 %setup -q
 
 %build
-%{__cc} -shared -fPIC -o spunnel.so slurm-spank-spunnel.c
+%{__cc} -shared -fPIC -o stunnel.so slurm-spank-stunnel.c
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -29,16 +29,16 @@ mkdir -p $RPM_BUILD_ROOT%{_libexecdir}
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/slurm
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/slurm/plugstack.conf.d
-install -m 755 spunnel.so $RPM_BUILD_ROOT%{_libdir}/slurm
-install -m 644 plugstack.conf $RPM_BUILD_ROOT%{_sysconfdir}/slurm/plugstack.conf.d/spunnel.conf.example
+install -m 755 stunnel.so $RPM_BUILD_ROOT%{_libdir}/slurm
+install -m 644 plugstack.conf $RPM_BUILD_ROOT%{_sysconfdir}/slurm/plugstack.conf.d/stunnel.conf.example
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
-%{_libdir}/slurm/spunnel.so
-%config %{_sysconfdir}/slurm/plugstack.conf.d/spunnel.conf.example
+%{_libdir}/slurm/stunnel.so
+%config %{_sysconfdir}/slurm/plugstack.conf.d/stunnel.conf.example
 
 %changelog
 * Fri Aug 11 2017 Kilian Cavalotti <kilian@stanford.edu>

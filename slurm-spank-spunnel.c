@@ -1,31 +1,30 @@
 /***************************************************************************\
- spunnel.c - SLURM SPANK TUNNEL plugin
+ slurm-spank-stunnel.c - SLURM SPANK TUNNEL plugin
  ***************************************************************************
  * Copyright  Harvard University (2014)
  *
  * Written by Aaron Kitzmiller <aaron_kitzmiller@harvard.edu> based on
  * X11 SPANK by Matthieu Hautreux <matthieu.hautreux@cea.fr>
  *
- * This file is part of spunnel, a SLURM SPANK Plugin aiming at
+ * This file is part of slurm-spank-stunnel, a SLURM SPANK Plugin aiming at
  * providing arbitrary port forwarding on SLURM execution
  * nodes using OpenSSH.
  *
- * spunnel is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by the 
- * Free Software Foundation; either version 2 of the License, or (at your 
+ * slurm-spank-stunnel is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
  * option) any later version.
  *
- * spunnel is distributed in the hope that it will be useful, but
+ * slurm-spank-stunnel is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  *
  * You should have received a copy of the GNU General Public License along
- * with spunnel; if not, write to the Free Software Foundation, Inc.,
+ * with slurm-spank-stunnel; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
 \***************************************************************************/
-/* Note: To compile: gcc -fPIC -shared -o spunnel spunnel-plug.c */
 #include <sys/resource.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -46,7 +45,7 @@
 #include <slurm/spank.h>
 
 
-#define SPUNNEL_ENVVAR         "SLURM_SPUNNEL"
+#define STUNNEL_ENVVAR         "SLURM_STUNNEL"
 
 #define INFO  slurm_debug
 #define DEBUG slurm_debug
@@ -57,12 +56,12 @@ static char* ssh_cmd = NULL;
 static char* args = NULL;
 
 
-/* 
- * can be used to adapt the ssh parameters to use to 
+/*
+ * can be used to adapt the ssh parameters to use to
  * set up the ssh tunnel
  *
- * this can be overriden by ssh_cmd= and args= 
- * spank plugin conf args 
+ * this can be overriden by ssh_cmd= and args=
+ * spank plugin conf args
  */
 #define DEFAULT_SSH_CMD "ssh"
 #define DEFAULT_ARGS ""
@@ -87,7 +86,7 @@ static char* args = NULL;
 /*
  * All spank plugins must define this macro for the SLURM plugin loader.
  */
-SPANK_PLUGIN(spunnel, 1);
+SPANK_PLUGIN(stunnel, 1);
 
 /*
  * Returns 1 if port is free, 0 otherwise
@@ -102,7 +101,7 @@ int port_available(int port)
     if( sockfd < 0 ) {
         fprintf(stderr,"Error getting socket for port check.\n");
         return 0;
-    } 
+    }
 
     bzero((char *) &serv_addr, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
@@ -166,7 +165,7 @@ int read_host_file(char *buf)
     FILE* file;
     char filename[256];
     char *user = getenv("USER");
- 
+
     // build file reference
     if ( snprintf(filename,256,HOST_FILE_PATTERN,user) >= 256 ) {
         fprintf(stderr,"tunnel: unable to build file reference\n");
@@ -177,9 +176,9 @@ int read_host_file(char *buf)
         // fprintf(stderr,"tunnel: unable to read file %s. You may need to manually kill ssh tunnel processes.\n", filename);
         return 30;
     }
-   
-    //Read the lines of the host file 
-    char line[100]; 
+
+    //Read the lines of the host file
+    char line[100];
     if (fgets(line,100,file) == NULL) {
         fprintf(stderr,"Unable to read from file %s\n",filename);
     }
@@ -213,12 +212,12 @@ struct spank_option spank_opts[] =
  * This is used to process any options in the config file
  *
  */
-void _spunnel_init_config(spank_t sp, int ac, char *av[]);
+void _stunnel_init_config(spank_t sp, int ac, char *av[]);
 
 int slurm_spank_init (spank_t sp, int ac, char *av[])
 {
     spank_option_register(sp,spank_opts);
-    _spunnel_init_config(sp,ac,av);
+    _stunnel_init_config(sp,ac,av);
 
     return 0;
 }
@@ -234,9 +233,9 @@ int _connect_node (char* node)
     char* expc_cmd;
     size_t expc_length;
 
-   
+
     // Setup the control file name
-    char controlfile[1024]; 
+    char controlfile[1024];
     char *user = getenv("USER");
     if (snprintf(controlfile,1024,CONTROL_FILE_PATTERN,user) > 1024){
         fprintf(stderr,"Unable to construct control file name; too big\n");
@@ -275,7 +274,7 @@ int _connect_node (char* node)
  * Takes the first of the allocated nodes and passes to _connect_node
  *
  */
-int _spunnel_connect_nodes (char* nodes)
+int _stunnel_connect_nodes (char* nodes)
 {
 
     char* host;
@@ -290,7 +289,7 @@ int _spunnel_connect_nodes (char* nodes)
     return 0;
 }
 /*
- * This calls the functions that actually generate the ssh tunnel (_spunnel_connect_nodes, _connect_node)
+ * This calls the functions that actually generate the ssh tunnel (_stunnel_connect_nodes, _connect_node)
  *
  */
 int slurm_spank_local_user_init (spank_t sp, int ac, char **av)
@@ -324,14 +323,14 @@ int slurm_spank_local_user_init (spank_t sp, int ac, char **av)
     // get job infos
     status = slurm_load_job(&job_buffer_ptr,jobid,SHOW_ALL);
     if ( status != 0 ) {
-        ERROR("spunnel: unable to get job infos");
+        ERROR("stunnel: unable to get job infos");
         status = -3;
         goto exit;
     }
 
     // check infos validity
     if ( job_buffer_ptr->record_count != 1 ) {
-        ERROR("spunnel: job infos are invalid");
+        ERROR("stunnel: job infos are invalid");
         status = -4;
         goto clean_exit;
     }
@@ -339,13 +338,13 @@ int slurm_spank_local_user_init (spank_t sp, int ac, char **av)
 
     // check allocated nodes var
     if ( job_ptr->nodes == NULL ) {
-        ERROR("spunnel: job has no allocated nodes defined");
+        ERROR("stunnel: job has no allocated nodes defined");
         status = -5;
         goto clean_exit;
     }
 
     // connect required nodes
-    status = _spunnel_connect_nodes(job_ptr->nodes);
+    status = _stunnel_connect_nodes(job_ptr->nodes);
 
     clean_exit:
     slurm_free_job_info_msg(job_buffer_ptr);
@@ -381,7 +380,7 @@ int slurm_spank_exit (spank_t sp, int ac, char **av){
         //fprintf(stderr,"empty host file\n");
         return 0;
     }
-    
+
     char *user = getenv("USER");
     char controlfile[1024];
     if (snprintf(controlfile,1024,CONTROL_FILE_PATTERN,user) > 1024){
@@ -409,7 +408,7 @@ int slurm_spank_exit (spank_t sp, int ac, char **av){
         }
     }
 
-   
+
    if ( expc_cmd != NULL )
        free(expc_cmd);
     return 0;
@@ -426,7 +425,7 @@ static int _tunnel_opt_process (int val, const char *optarg, int remote)
         fprintf(stderr,"--tunnel requires an argument, e.g. 8888:8888");
         return (0);
     }
-    
+
     char *portlist = strdup(optarg);
     int portpaircount = 1;
     int i = 0;
@@ -492,7 +491,7 @@ static int _tunnel_opt_process (int val, const char *optarg, int remote)
         }
         p = strdup(args);
         snprintf(args,256," %s -L %d:localhost:%d ",p,first,second);
-        free(portpairs); 
+        free(portpairs);
         free(p);
     }
 
@@ -503,7 +502,7 @@ static int _tunnel_opt_process (int val, const char *optarg, int remote)
 /*
  * Process any options on the plugstack.conf line
  */
-void _spunnel_init_config(spank_t sp, int ac, char *av[])
+void _stunnel_init_config(spank_t sp, int ac, char *av[])
 {
     int i;
     char* elt;
